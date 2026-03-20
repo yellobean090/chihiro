@@ -1,0 +1,2640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YelloBean Studio — Web Design & Development</title>
+  <meta name="description" content="YelloBean Studio — crafting sharp, fast, conversion-ready websites for ambitious brands." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       0. DESIGN TOKENS
+    ═══════════════════════════════════════════════════════════════ */
+    :root {
+      --night:    #000F08;
+      --imperial: #FB3640;
+      --text:     #F0EDE4;
+      --muted:    #888888;
+      --surface:  #050F09;
+      --border:   rgba(251, 54, 64, 0.15);
+
+      /* Typography */
+      --font-display: 'Unbounded', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+
+      /* Spacing scale */
+      --space-xs:  0.5rem;
+      --space-sm:  1rem;
+      --space-md:  2rem;
+      --space-lg:  4rem;
+      --space-xl:  8rem;
+      --space-2xl: 12rem;
+
+      /* Layout */
+      --container-max: 1320px;
+      --nav-h: 72px;
+
+      /* Easing */
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       1. CSS RESET
+    ═══════════════════════════════════════════════════════════════ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      background-color: var(--night);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      /* Hide native cursor site-wide */
+      cursor: none;
+    }
+
+    a, button {
+      cursor: none;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img, video, svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    ul, ol {
+      list-style: none;
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      background: none;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       2. GLOBAL UTILITY CLASSES
+    ═══════════════════════════════════════════════════════════════ */
+    .container {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       3. CUSTOM CURSOR
+    ═══════════════════════════════════════════════════════════════ */
+    #cursor-dot,
+    #cursor-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99999;
+      will-change: transform;
+      transform: translate(-50%, -50%);
+    }
+
+    /* 8px filled dot */
+    #cursor-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--imperial);
+      mix-blend-mode: difference;
+      transition: width 0.2s var(--ease-out-expo),
+                  height 0.2s var(--ease-out-expo),
+                  opacity 0.2s ease;
+    }
+
+    /* 32px hollow ring — lags behind via JS lerp + 0.35s CSS transition fallback */
+    #cursor-ring {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid var(--imperial);
+      background: transparent;
+      opacity: 0.6;
+      transition: width  0.35s var(--ease-out-expo),
+                  height 0.35s var(--ease-out-expo),
+                  opacity 0.35s ease,
+                  border-color 0.35s ease;
+    }
+
+    /* Hover state: dot enlarges, ring expands */
+    body.cursor-hover #cursor-dot {
+      width: 14px;
+      height: 14px;
+    }
+
+    body.cursor-hover #cursor-ring {
+      width: 54px;
+      height: 54px;
+      opacity: 0.35;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       4. LOADER OVERLAY
+    ═══════════════════════════════════════════════════════════════ */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: all;
+    }
+
+    /* Two halves that split apart */
+    .loader-half {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 50vh;
+      background: var(--night);
+      transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1) 0.1s;
+      will-change: transform;
+    }
+    .loader-half--top    { top: 0; }
+    .loader-half--bottom { bottom: 0; }
+
+    /* Split state applied by JS */
+    .loader-half--top.split    { transform: translateY(-100%); }
+    .loader-half--bottom.split { transform: translateY(100%); }
+
+    /* Counter sits in the absolute center across both halves */
+    #loader-count {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(80px, 15vw, 160px);
+      color: var(--imperial);
+      letter-spacing: -0.05em;
+      line-height: 1;
+      z-index: 1;
+      pointer-events: none;
+      /* subtle fade once split begins */
+      transition: opacity 0.2s ease 0.05s;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       5. NAVIGATION
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* Scroll progress bar — pinned to very top */
+    #scroll-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--imperial);
+      z-index: 10001;
+      pointer-events: none;
+      will-change: width;
+    }
+
+    #nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      transition: background 0.4s ease,
+                  border-color 0.4s ease,
+                  backdrop-filter 0.4s ease;
+      border-bottom: 1px solid transparent;
+    }
+
+    /* Scrolled state */
+    #nav.scrolled {
+      background: rgba(0, 15, 8, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom-color: rgba(251, 54, 64, 0.10);
+    }
+
+    .nav-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    /* Logo */
+    .nav-logo {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .nav-logo .logo {
+      font-size: 1rem;
+    }
+
+    /* Desktop nav links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-left: auto;
+    }
+    .nav-links a {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-transform: uppercase;
+      transition: color 0.2s ease;
+      white-space: nowrap;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    /* CTA button */
+    .nav-cta {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--night);
+      background: var(--imperial);
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      white-space: nowrap;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+    .nav-cta:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    /* ── Hamburger (mobile only) ── */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 32px;
+      height: 32px;
+      background: none;
+      border: none;
+      padding: 0;
+      margin-left: auto;
+      z-index: 10002;
+      position: relative;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 100%;
+      height: 1.5px;
+      background: var(--imperial);
+      border-radius: 2px;
+      transform-origin: center;
+      transition: transform 0.35s var(--ease-out-expo),
+                  opacity   0.25s ease,
+                  top       0.35s var(--ease-out-expo);
+    }
+    /* X state */
+    .nav-hamburger.open span:nth-child(1) {
+      transform: translateY(6.5px) rotate(45deg);
+    }
+    .nav-hamburger.open span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    .nav-hamburger.open span:nth-child(3) {
+      transform: translateY(-6.5px) rotate(-45deg);
+    }
+
+    /* ── Mobile fullscreen overlay menu ── */
+    #mobile-menu {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: var(--night);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+    #mobile-menu.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .mobile-menu-link {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 48px;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      line-height: 1.15;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: color 0.2s ease;
+      /* individual stagger applied inline via JS */
+    }
+    .mobile-menu-link.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .mobile-menu-link:hover {
+      color: var(--imperial);
+    }
+
+    /* ── Responsive: hide desktop links on mobile ── */
+    @media (max-width: 768px) {
+      .nav-links,
+      .nav-cta {
+        display: none;
+      }
+      .nav-hamburger {
+        display: flex;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       6. HERO
+    ═══════════════════════════════════════════════════════════════ */
+    #hero {
+      min-height: 100vh;
+      padding-top: 68px;
+      background: var(--night);
+      /* Dot grid */
+      background-image:
+        radial-gradient(circle, rgba(251,54,64,0.12) 1px, transparent 1px);
+      background-size: 32px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+      padding-block: var(--space-xl);
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+    }
+
+    /* Left column — 60% */
+    .hero-left {
+      flex: 0 0 60%;
+      max-width: 60%;
+    }
+
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--imperial);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Headline — word-split reveal container */
+    .hero-headline {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(48px, 8vw, 110px);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    /* Each word gets a clip wrapper injected by JS */
+    .word-clip {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: bottom;
+    }
+    .word-inner {
+      display: inline-block;
+      transform: translateY(60px);
+      opacity: 0;
+      transition: transform 0.75s var(--ease-out-expo),
+                  opacity   0.55s ease;
+    }
+    .word-inner.revealed {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .hero-line-1 {
+      color: var(--text);
+      display: block;
+      margin-bottom: 0.04em;
+    }
+    .hero-line-2 {
+      display: block;
+      color: transparent;
+      -webkit-text-stroke: 2px var(--imperial);
+      text-stroke: 2px var(--imperial);
+    }
+
+    .hero-sub {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 420px;
+      line-height: 1.7;
+      margin-top: 24px;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.6s ease, transform 0.6s var(--ease-out-expo);
+    }
+    .hero-sub.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hero-buttons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 40px;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.6s ease 0.15s, transform 0.6s var(--ease-out-expo) 0.15s;
+    }
+    .hero-buttons.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Primary button — liquid hover */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+      background: var(--imperial);
+      color: var(--night);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      border-radius: 8px;
+      border: none;
+      display: inline-block;
+      z-index: 0;
+      transition: color 0.3s ease;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #ff6b6b;
+      border-radius: 50%;
+      transform: scale(0);
+      transform-origin: center center;
+      transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: -1;
+    }
+    .btn-primary:hover::before {
+      transform: scale(3);
+      border-radius: 0;
+    }
+
+    /* Secondary button */
+    .btn-secondary {
+      display: inline-block;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 14px 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(251, 54, 64, 0.4);
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .btn-secondary:hover {
+      border-color: var(--imperial);
+    }
+
+    /* Right column — 40% decorative SVG */
+    .hero-right {
+      flex: 0 0 40%;
+      max-width: 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .hero-svg {
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1;
+    }
+
+    /* SVG rect animations */
+    @keyframes rotateCW  { to { transform: rotate(360deg); } }
+    @keyframes rotateCCW { to { transform: rotate(-360deg); } }
+
+    .rect-cw {
+      transform-origin: center;
+      animation: rotateCW 20s linear infinite;
+    }
+    .rect-ccw {
+      transform-origin: center;
+      animation: rotateCCW 30s linear infinite;
+    }
+
+    /* ── Hero mobile ── */
+    @media (max-width: 768px) {
+      .hero-inner {
+        flex-direction: column;
+        padding-block: var(--space-lg);
+        gap: var(--space-md);
+      }
+      .hero-left {
+        flex: none;
+        max-width: 100%;
+        width: 100%;
+      }
+      .hero-right {
+        display: none;
+      }
+      .hero-headline {
+        font-size: clamp(42px, 12vw, 80px);
+      }
+      .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+      .btn-primary,
+      .btn-secondary {
+        text-align: center;
+        width: 100%;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       7. SERVICES
+    ═══════════════════════════════════════════════════════════════ */
+    #services {
+      padding-block: var(--space-xl);
+      background: var(--surface);
+    }
+
+    .services-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    .section-label {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--imperial);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 1.25rem;
+    }
+
+    .services-heading {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: var(--space-lg);
+    }
+
+    .services-heading .outlined {
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--imperial);
+      text-stroke: 1.5px var(--imperial);
+    }
+
+    /* 4-column grid on desktop, 1px gap (grid-line feel) */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border); /* the 1px lines are just the grid bg showing through */
+    }
+
+    .service-card {
+      background: var(--night);
+      border: 1px solid rgba(251,54,64,0.12);
+      padding: clamp(1.5rem, 3vw, 2.5rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      transition: border-color 0.3s cubic-bezier(0.23,1,0.32,1),
+                  box-shadow  0.3s cubic-bezier(0.23,1,0.32,1),
+                  transform   0.3s cubic-bezier(0.23,1,0.32,1);
+      /* scroll-reveal initial state */
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    .service-card.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .service-card:hover {
+      border-color: var(--imperial);
+      box-shadow: 0 0 40px rgba(251,54,64,0.08);
+      transform: translateY(-6px);
+    }
+
+    /* Outlined SVG number */
+    .service-number {
+      display: block;
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+    }
+    .service-num-path {
+      stroke: var(--imperial);
+      stroke-width: 1.5;
+      fill: none;
+      /* Dashoffset draw animation */
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+    .service-card:hover .service-num-path {
+      stroke-dashoffset: 0;
+    }
+
+    .service-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .service-desc {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* Mobile: 2×2 grid */
+    @media (max-width: 768px) {
+      .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .service-number {
+        width: 48px;
+        height: 48px;
+      }
+      .service-title {
+        font-size: 16px;
+      }
+    }
+    @media (max-width: 420px) {
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       8. WORK CAROUSEL — infinite auto-scroll
+    ═══════════════════════════════════════════════════════════════ */
+    #work-carousel {
+      padding-block: var(--space-xl);
+      background: var(--night);
+      overflow: hidden;
+    }
+
+    .carousel-header {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+      margin-bottom: 3rem;
+    }
+
+    .carousel-heading {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(32px, 5vw, 56px);
+      letter-spacing: -0.03em;
+      color: var(--text);
+      display: inline-block;
+      position: relative;
+    }
+
+    /* Animated underline — drawn left to right on scroll reveal */
+    .carousel-heading::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+      height: 2px;
+      width: 100%;
+      background: var(--imperial);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.7s var(--ease-out-expo);
+    }
+    .carousel-heading.line-revealed::after {
+      transform: scaleX(1);
+    }
+
+    /* Track rows */
+    .carousel-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .carousel-row {
+      display: flex;
+      width: max-content;
+      will-change: transform;
+    }
+    /* Pause on hover */
+    .carousel-row:hover {
+      animation-play-state: paused !important;
+    }
+
+    /* Keyframes for each direction */
+    @keyframes scrollLeft {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes scrollRight {
+      0%   { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+
+    .carousel-row--left  { animation: scrollLeft  35s linear infinite; }
+    .carousel-row--right { animation: scrollRight 45s linear infinite; }
+
+    /* Individual project card */
+    .proj-card {
+      position: relative;
+      width: 300px;
+      height: 200px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid rgba(251,54,64,0.15);
+      overflow: hidden;
+      margin-right: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 16px;
+      transition: border-color 0.25s ease,
+                  transform   0.25s ease;
+    }
+    .proj-card:hover {
+      border-color: var(--imperial);
+      transform: scale(1.04);
+    }
+
+    /* Hover overlay */
+    .proj-card__overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,15,8,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 2;
+      border-radius: 10px;
+    }
+    .proj-card:hover .proj-card__overlay {
+      opacity: 1;
+    }
+    .proj-card__overlay-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    /* Card info (bottom-left) */
+    .proj-card__info {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .proj-card__name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .proj-card__tag {
+      display: inline-block;
+      background: var(--imperial);
+      color: var(--night);
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      padding: 4px 10px;
+      border-radius: 20px;
+      align-self: flex-start;
+      line-height: 1.4;
+    }
+
+    /* Subtle decorative gradient inside card */
+    .proj-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 40%,
+        rgba(0,15,8,0.7) 100%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Mobile: narrower cards */
+    @media (max-width: 768px) {
+      .proj-card {
+        width: 220px;
+        height: 160px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       9. FEATURED WORK — 3D TILT CARDS
+    ═══════════════════════════════════════════════════════════════ */
+    #featured-work {
+      padding-block: var(--space-xl);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .featured-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    /* 3D stage */
+    .featured-stage {
+      perspective: 1000px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-top: var(--space-lg);
+      /* contains 3 cards */
+    }
+
+    /* Base card */
+    .feat-card {
+      position: relative;
+      width: 360px;
+      height: 480px;
+      flex-shrink: 0;
+      background: var(--night);
+      border: 1px solid rgba(251,54,64,0.2);
+      border-radius: 16px;
+      overflow: hidden;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform     0.6s cubic-bezier(0.23,1,0.32,1),
+                  opacity       0.4s ease,
+                  border-color  0.3s ease,
+                  box-shadow    0.4s ease;
+      will-change: transform;
+      user-select: none;
+    }
+
+    /* Center / active */
+    .feat-card--active {
+      opacity: 1;
+      transform: scale(1) rotateY(0deg);
+      z-index: 2;
+      box-shadow: 0 24px 60px rgba(251,54,64,0.12);
+    }
+
+    /* Left side card */
+    .feat-card--left {
+      opacity: 0.75;
+      transform: scale(0.88) rotateY(8deg);
+      z-index: 1;
+    }
+
+    /* Right side card */
+    .feat-card--right {
+      opacity: 0.75;
+      transform: scale(0.88) rotateY(-8deg);
+      z-index: 1;
+    }
+
+    /* Gloss pseudo-element — position set by JS */
+    .feat-card__gloss {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 10;
+      background: radial-gradient(
+        circle 200px at 50% 50%,
+        rgba(255,255,255,0.06) 0%,
+        transparent 70%
+      );
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .feat-card:hover .feat-card__gloss {
+      opacity: 1;
+    }
+
+    /* Card content */
+    .feat-card__category {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--imperial);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .feat-card__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+    }
+    .feat-card__desc {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex-grow: 1;
+    }
+    .feat-card__arrow {
+      position: absolute;
+      bottom: 28px;
+      right: 28px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(251,54,64,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--imperial);
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .feat-card:hover .feat-card__arrow {
+      background: var(--imperial);
+      border-color: var(--imperial);
+      color: var(--night);
+    }
+
+    /* Decorative top stripe */
+    .feat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--imperial), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .feat-card--active::after {
+      opacity: 1;
+    }
+
+    /* ── Mobile: single card + swipe ── */
+    @media (max-width: 768px) {
+      .featured-stage {
+        gap: 0;
+        position: relative;
+        min-height: 420px;
+        overflow: hidden;
+      }
+      .feat-card {
+        position: absolute;
+        width: calc(100vw - 4rem);
+        max-width: 340px;
+        height: 400px;
+        transition: transform 0.5s cubic-bezier(0.23,1,0.32,1),
+                    opacity   0.4s ease;
+      }
+      .feat-card--left  { transform: translateX(-110%) scale(0.9); opacity: 0; }
+      .feat-card--right { transform: translateX(110%)  scale(0.9); opacity: 0; }
+      .feat-card--active{ transform: translateX(0)     scale(1);   opacity: 1; }
+    }
+
+    /* Disable 3D tilt on touch devices */
+    @media (hover: none) {
+      .feat-card {
+        transform: none !important;
+        transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.23,1,0.32,1) !important;
+      }
+      .feat-card--left  { opacity: 0.75; transform: translateX(-110%) scale(0.9) !important; }
+      .feat-card--right { opacity: 0.75; transform: translateX(110%)  scale(0.9) !important; }
+      .feat-card--active{ opacity: 1;    transform: translateX(0)     scale(1)   !important; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       10. PROCESS — sticky horizontal scroll
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* Outer wrapper drives scroll height */
+    .process-wrapper {
+      height: 400vh;
+      position: relative;
+    }
+
+    /* Sticky viewport container */
+    #process {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: var(--night);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .process-header {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+      margin-bottom: 2rem;
+      flex-shrink: 0;
+    }
+
+    /* Horizontal strip */
+    .process-strip {
+      display: flex;
+      will-change: transform;
+    }
+
+    /* Individual step */
+    .process-step {
+      width: 80vw;
+      flex-shrink: 0;
+      padding: 0 60px;
+      display: flex;
+      align-items: center;
+      gap: 60px;
+    }
+    .process-step:first-child { padding-left: calc(var(--space-md) + (100vw - var(--container-max))/2); }
+
+    .process-num {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(100px, 14vw, 200px);
+      line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--imperial);
+      text-stroke: 1px var(--imperial);
+      opacity: 0.15;
+      flex-shrink: 0;
+      letter-spacing: -0.05em;
+    }
+
+    .process-content { max-width: 460px; }
+
+    .process-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(24px, 3vw, 36px);
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    .process-desc {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 400px;
+    }
+
+    /* Progress bar at bottom of sticky viewport */
+    .process-progress-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--imperial);
+      transition: none;
+      will-change: width;
+    }
+
+    /* ── Mobile: disable horizontal scroll, stack vertically ── */
+    @media (max-width: 768px) {
+      .process-wrapper { height: auto; }
+      #process {
+        position: static;
+        height: auto;
+        padding-block: var(--space-xl);
+        overflow: visible;
+      }
+      .process-strip {
+        flex-direction: column;
+        gap: var(--space-lg);
+        padding-inline: var(--space-md);
+      }
+      .process-step {
+        width: 100%;
+        padding: 0;
+        gap: var(--space-md);
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .process-step:first-child { padding-left: 0; }
+      .process-num { font-size: clamp(64px, 18vw, 100px); }
+      .process-progress-bar { display: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       11. STATS
+    ═══════════════════════════════════════════════════════════════ */
+    #stats {
+      padding-block: var(--space-xl);
+      background: var(--surface);
+    }
+
+    .stats-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-xl);
+    }
+
+    .stat-item {
+      text-align: center;
+      flex: 1;
+      max-width: 260px;
+    }
+
+    .stat-number {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(52px, 8vw, 96px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--imperial);
+    }
+
+    .stat-label {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Divider lines between stats */
+    .stat-item + .stat-item {
+      border-left: 1px solid var(--border);
+      padding-left: var(--space-xl);
+    }
+
+    @media (max-width: 768px) {
+      .stats-inner {
+        flex-direction: column;
+        gap: var(--space-lg);
+      }
+      .stat-item + .stat-item {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: var(--space-lg);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       12. TESTIMONIALS
+    ═══════════════════════════════════════════════════════════════ */
+    #testimonials {
+      padding-block: var(--space-xl);
+      background: var(--night);
+      overflow: hidden;
+    }
+
+    .testi-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    /* Card stage */
+    .testi-stage {
+      position: relative;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: var(--space-lg);
+    }
+
+    .testi-card {
+      position: absolute;
+      background: var(--surface);
+      border: 1px solid rgba(251,54,64,0.12);
+      border-radius: 16px;
+      max-width: 560px;
+      width: 100%;
+      padding: 40px;
+      transition: transform 0.55s cubic-bezier(0.23,1,0.32,1),
+                  opacity  0.4s ease;
+    }
+
+    .testi-card--active {
+      transform: scale(1) translateX(0);
+      opacity: 1;
+      z-index: 2;
+    }
+    .testi-card--left {
+      transform: scale(0.88) translateX(-60%);
+      opacity: 0.4;
+      z-index: 1;
+    }
+    .testi-card--right {
+      transform: scale(0.88) translateX(60%);
+      opacity: 0.4;
+      z-index: 1;
+    }
+    .testi-card--hidden {
+      transform: scale(0.8) translateX(0);
+      opacity: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .testi-quote {
+      font-family: var(--font-body);
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+    .testi-quote::before { content: '\201C'; color: var(--imperial); font-style: normal; }
+    .testi-quote::after  { content: '\201D'; color: var(--imperial); font-style: normal; }
+
+    .testi-author {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .testi-name {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .testi-biz {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--imperial);
+      letter-spacing: 0.04em;
+    }
+
+    /* Navigation dots */
+    .testi-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: calc(var(--space-lg) + 40px);
+    }
+
+    .testi-dot {
+      border: none;
+      background: transparent;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .testi-dot::before {
+      content: '';
+      display: block;
+      border-radius: 50%;
+      background: transparent;
+      border: 1.5px solid var(--muted);
+      width: 6px;
+      height: 6px;
+      transition: all 0.3s ease;
+    }
+    .testi-dot.active::before {
+      background: var(--imperial);
+      border-color: var(--imperial);
+      width: 8px;
+      height: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .testi-card {
+        max-width: 100%;
+        position: absolute;
+      }
+      .testi-card--left  { transform: scale(0.88) translateX(-85%); }
+      .testi-card--right { transform: scale(0.88) translateX(85%); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       13. FOOTER
+    ═══════════════════════════════════════════════════════════════ */
+    #footer {
+      background: var(--surface);
+      border-top: 1px solid rgba(251,54,64,0.10);
+      padding-block: var(--space-xl) var(--space-lg);
+    }
+
+    .footer-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    /* Big "LET'S WORK." text */
+    .footer-headline {
+      margin-bottom: var(--space-xl);
+      line-height: 0.9;
+    }
+    .footer-headline__solid {
+      display: block;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(60px, 12vw, 140px);
+      letter-spacing: -0.04em;
+      color: var(--text);
+    }
+    .footer-headline__outlined {
+      display: block;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(60px, 12vw, 140px);
+      letter-spacing: -0.04em;
+      color: transparent;
+      -webkit-text-stroke: 2px var(--imperial);
+      text-stroke: 2px var(--imperial);
+    }
+
+    /* 3-column grid */
+    .footer-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-lg);
+      padding-top: var(--space-lg);
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-col-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .footer-tagline {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .footer-links a {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 15px;
+      color: var(--muted);
+      transition: color 0.2s ease;
+      display: inline-block;
+      min-height: 44px;
+      line-height: 44px;
+    }
+    .footer-links a:hover { color: var(--text); }
+
+    /* Contact items */
+    .footer-contact {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .footer-contact a {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      border-radius: 4px;
+      padding: 8px 0;
+      min-height: 44px;
+    }
+    .footer-contact a:hover {
+      color: var(--text);
+      transform: translateY(-4px);
+      text-shadow: 0 0 12px rgba(251,54,64,0.5);
+    }
+
+    /* Copyright bar */
+    .footer-copy {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 12px;
+      color: #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .footer-cols {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+      }
+      .footer-headline__solid,
+      .footer-headline__outlined {
+        font-size: clamp(52px, 18vw, 100px);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       15. MICRO-INTERACTIONS
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* Ripple on click */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(251,54,64,0.25);
+      transform: scale(0);
+      animation: rippleAnim 0.5s ease-out forwards;
+      pointer-events: none;
+      z-index: 100;
+    }
+    @keyframes rippleAnim {
+      to { transform: scale(1); opacity: 0; }
+    }
+
+    /* CTA pulse ping at idle */
+    @keyframes ctaPing {
+      0%   { box-shadow: 0 0 0 0   rgba(251,54,64,0.5); }
+      70%  { box-shadow: 0 0 0 14px rgba(251,54,64,0); }
+      100% { box-shadow: 0 0 0 0   rgba(251,54,64,0); }
+    }
+    .btn-primary.pulse { animation: ctaPing 3s ease-in-out infinite; }
+
+    /* Section heading underline rule (global class) */
+    .section-reveal-heading {
+      position: relative;
+      display: inline-block;
+    }
+    .section-reveal-heading::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -6px;
+      height: 2px;
+      width: 100%;
+      background: var(--imperial);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.7s var(--ease-out-expo);
+    }
+    .section-reveal-heading.line-revealed::after {
+      transform: scaleX(1);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       16. REDUCED MOTION
+    ═══════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      #cursor-dot, #cursor-ring { display: none; }
+    }
+
+    /* ─── Hide cursor on touch devices ─── */
+    @media (hover: none) {
+      #cursor-dot, #cursor-ring { display: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PLACEHOLDER UTIL (still referenced for remaining skeletons)
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* ═══════════════════════════════════════════════════════════════
+       17. LOGO COMPONENT
+    ═══════════════════════════════════════════════════════════════ */
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      line-height: 1;
+      user-select: none;
+    }
+
+    /* "YELLO" — filled imperial rectangle, dark text */
+    .logo__yello {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: inherit;
+      color: var(--night);
+      background: var(--imperial);
+      padding: 0.1em 0.22em 0.12em;
+      letter-spacing: -0.04em;
+      display: inline-block;
+    }
+
+    /* "BEAN" — outline / stroke text, no fill */
+    .logo__bean {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: inherit;
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--imperial);
+      text-stroke: 1.5px var(--imperial);
+      letter-spacing: -0.04em;
+      display: inline-block;
+    }
+
+    /* Personality dot after BEAN */
+    .logo__dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--imperial);
+      margin-left: 3px;
+      /* vertical centre with text baseline */
+      align-self: center;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       15. PLACEHOLDER SECTION LABELS (dev only, remove later)
+    ═══════════════════════════════════════════════════════════════ */
+    .section-placeholder {
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      margin: var(--space-md);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .section-placeholder span {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--imperial);
+      letter-spacing: -0.02em;
+      text-transform: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ────────────────────────────────────────────
+       CUSTOM CURSOR
+  ──────────────────────────────────────────── -->
+  <div id="cursor-dot"  aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+
+  <!-- ────────────────────────────────────────────
+       1. LOADER
+  ──────────────────────────────────────────── -->
+  <div id="loader" role="status" aria-label="Loading YelloBean Studio" aria-live="polite">
+    <div class="loader-half loader-half--top"></div>
+    <div class="loader-half loader-half--bottom"></div>
+    <div id="loader-count" aria-hidden="true">0</div>
+  </div>
+
+  <!-- Scroll progress bar -->
+  <div id="scroll-bar" aria-hidden="true"></div>
+
+  <!-- ────────────────────────────────────────────
+       2. NAVIGATION
+  ──────────────────────────────────────────── -->
+  <header id="nav" role="banner">
+    <div class="nav-inner">
+
+      <!-- Logo -->
+      <a href="#hero" class="nav-logo" aria-label="YelloBean Studio — home">
+        <div class="logo">
+          <span class="logo__yello">YELLO</span><span class="logo__bean">BEAN</span><span class="logo__dot" aria-hidden="true"></span>
+        </div>
+      </a>
+
+      <!-- Desktop links -->
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#work-carousel">Work</a>
+        <a href="#services">Services</a>
+        <a href="#process">Process</a>
+        <a href="#footer">Contact</a>
+      </nav>
+
+      <!-- Desktop CTA -->
+      <a href="#footer" class="nav-cta">Get a Free Demo</a>
+
+      <!-- Mobile hamburger -->
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- Mobile fullscreen overlay menu -->
+  <nav id="mobile-menu" aria-label="Mobile navigation" aria-hidden="true">
+    <a href="#work-carousel" class="mobile-menu-link">Work</a>
+    <a href="#services"      class="mobile-menu-link">Services</a>
+    <a href="#process"       class="mobile-menu-link">Process</a>
+    <a href="#footer"        class="mobile-menu-link">Contact</a>
+  </nav>
+
+  <!-- ────────────────────────────────────────────
+       3. HERO
+  ──────────────────────────────────────────── -->
+  <main>
+    <section id="hero" aria-label="Hero">
+      <div class="hero-inner">
+
+        <!-- Left content -->
+        <div class="hero-left">
+          <p class="hero-label" aria-hidden="true">✦ Web Design &amp; Development Studio</p>
+
+          <h1 class="hero-headline">
+            <span class="hero-line-1">WE BUILD</span>
+            <span class="hero-line-2">WEBSITES.</span>
+          </h1>
+
+          <p class="hero-sub">
+            Your business deserves to be found. We build fast, beautiful websites
+            that turn visitors into customers — starting with a free demo.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#footer" class="btn-primary">Get Free Demo →</a>
+            <a href="#work-carousel" class="btn-secondary">See Our Work</a>
+          </div>
+        </div>
+
+        <!-- Right decorative SVG -->
+        <div class="hero-right" aria-hidden="true">
+          <svg class="hero-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <g opacity="0.15">
+              <!-- Static large rect -->
+              <rect x="80" y="80" width="240" height="240"
+                    fill="none" stroke="#FB3640" stroke-width="1"/>
+
+              <!-- Slow CW rotation — medium rect -->
+              <g class="rect-cw">
+                <rect x="130" y="100" width="200" height="160"
+                      fill="none" stroke="#FB3640" stroke-width="1"
+                      transform="translate(200,200) translate(-200,-200)"/>
+              </g>
+
+              <!-- Slow CCW rotation — tall slim rect -->
+              <g class="rect-ccw">
+                <rect x="160" y="60" width="120" height="280"
+                      fill="none" stroke="#FB3640" stroke-width="1"
+                      transform="translate(200,200) translate(-200,-200)"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="services" aria-label="Services">
+      <div class="services-inner">
+        <span class="section-label">What We Do</span>
+        <h2 class="services-heading">
+          Services built for<br>
+          <span class="outlined">businesses that want results</span>
+        </h2>
+
+        <div class="services-grid">
+
+          <!-- Card 01 — Website Design -->
+          <article class="service-card">
+            <svg class="service-number" viewBox="0 0 64 64" aria-hidden="true">
+              <!-- "01" as path so we can animate stroke -->
+              <text x="4" y="52" font-family="Unbounded, sans-serif" font-weight="900"
+                    font-size="46" fill="none" stroke="#FB3640" stroke-width="1.5"
+                    class="service-num-path"
+                    style="stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset 0.5s ease;">01</text>
+            </svg>
+            <h3 class="service-title">Website Design</h3>
+            <p class="service-desc">Custom, on-brand designs that make visitors stop scrolling and start trusting your business.</p>
+          </article>
+
+          <!-- Card 02 — Landing Pages -->
+          <article class="service-card">
+            <svg class="service-number" viewBox="0 0 64 64" aria-hidden="true">
+              <text x="4" y="52" font-family="Unbounded, sans-serif" font-weight="900"
+                    font-size="46" fill="none" stroke="#FB3640" stroke-width="1.5"
+                    class="service-num-path"
+                    style="stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset 0.5s ease;">02</text>
+            </svg>
+            <h3 class="service-title">Landing Pages</h3>
+            <p class="service-desc">High-converting single pages for campaigns, product launches, and lead generation.</p>
+          </article>
+
+          <!-- Card 03 — WhatsApp Integration -->
+          <article class="service-card">
+            <svg class="service-number" viewBox="0 0 64 64" aria-hidden="true">
+              <text x="4" y="52" font-family="Unbounded, sans-serif" font-weight="900"
+                    font-size="46" fill="none" stroke="#FB3640" stroke-width="1.5"
+                    class="service-num-path"
+                    style="stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset 0.5s ease;">03</text>
+            </svg>
+            <h3 class="service-title">WhatsApp Integration</h3>
+            <p class="service-desc">One-click WhatsApp buttons and chat widgets that connect customers to you instantly.</p>
+          </article>
+
+          <!-- Card 04 — SEO Setup -->
+          <article class="service-card">
+            <svg class="service-number" viewBox="0 0 64 64" aria-hidden="true">
+              <text x="4" y="52" font-family="Unbounded, sans-serif" font-weight="900"
+                    font-size="46" fill="none" stroke="#FB3640" stroke-width="1.5"
+                    class="service-num-path"
+                    style="stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset 0.5s ease;">04</text>
+            </svg>
+            <h3 class="service-title">SEO Setup</h3>
+            <p class="service-desc">Technical SEO foundations so Google finds you first — sitemaps, meta, speed, and schema.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────
+         5. WORK CAROUSEL
+    ──────────────────────────────────────── -->
+    <section id="work-carousel" aria-label="Selected work carousel">
+
+      <div class="carousel-header">
+        <h2 class="carousel-heading" id="carousel-heading">SELECTED WORK</h2>
+      </div>
+
+      <div class="carousel-rows">
+
+        <!-- ROW 1 — scrolls LEFT -->
+        <div class="carousel-row carousel-row--left" aria-hidden="true">
+          <!-- Original set -->
+          <a href="https://yellobean090.github.io/Dec25/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">RV Cafe</span><span class="proj-card__tag">Street Food &amp; Restaurant</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/vibez/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">VibeZ Style</span><span class="proj-card__tag">Fashion &amp; Streetwear</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/prayer/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Prayer Foundation</span><span class="proj-card__tag">Events &amp; Webinar</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/aurasquare/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Aura Square</span><span class="proj-card__tag">Kids Events &amp; Decor</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/kanputgift/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Kanpur Gift Wala</span><span class="proj-card__tag">Luxury Gifts</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="#" class="proj-card">
+            <div class="proj-card__info"><span class="proj-card__name">YelloBean Studio</span><span class="proj-card__tag">Portfolio</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <!-- Duplicate set for seamless loop -->
+          <a href="https://yellobean090.github.io/Dec25/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">RV Cafe</span><span class="proj-card__tag">Street Food &amp; Restaurant</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/vibez/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">VibeZ Style</span><span class="proj-card__tag">Fashion &amp; Streetwear</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/prayer/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Prayer Foundation</span><span class="proj-card__tag">Events &amp; Webinar</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/aurasquare/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Aura Square</span><span class="proj-card__tag">Kids Events &amp; Decor</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/kanputgift/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Kanpur Gift Wala</span><span class="proj-card__tag">Luxury Gifts</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="#" class="proj-card">
+            <div class="proj-card__info"><span class="proj-card__name">YelloBean Studio</span><span class="proj-card__tag">Portfolio</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+        </div>
+
+        <!-- ROW 2 — scrolls RIGHT (starts at -50% via CSS) -->
+        <div class="carousel-row carousel-row--right" aria-hidden="true">
+          <!-- Original set -->
+          <a href="https://yellobean090.github.io/aurasquare/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Aura Square</span><span class="proj-card__tag">Kids Events &amp; Decor</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/kanputgift/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Kanpur Gift Wala</span><span class="proj-card__tag">Luxury Gifts</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/prayer/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Prayer Foundation</span><span class="proj-card__tag">Events &amp; Webinar</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/vibez/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">VibeZ Style</span><span class="proj-card__tag">Fashion &amp; Streetwear</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/Dec25/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">RV Cafe</span><span class="proj-card__tag">Street Food &amp; Restaurant</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="#" class="proj-card">
+            <div class="proj-card__info"><span class="proj-card__name">YelloBean Studio</span><span class="proj-card__tag">Portfolio</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <!-- Duplicate set -->
+          <a href="https://yellobean090.github.io/aurasquare/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Aura Square</span><span class="proj-card__tag">Kids Events &amp; Decor</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/kanputgift/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Kanpur Gift Wala</span><span class="proj-card__tag">Luxury Gifts</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/prayer/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">Prayer Foundation</span><span class="proj-card__tag">Events &amp; Webinar</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/vibez/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">VibeZ Style</span><span class="proj-card__tag">Fashion &amp; Streetwear</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="https://yellobean090.github.io/Dec25/" class="proj-card" target="_blank" rel="noopener">
+            <div class="proj-card__info"><span class="proj-card__name">RV Cafe</span><span class="proj-card__tag">Street Food &amp; Restaurant</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+          <a href="#" class="proj-card">
+            <div class="proj-card__info"><span class="proj-card__name">YelloBean Studio</span><span class="proj-card__tag">Portfolio</span></div>
+            <div class="proj-card__overlay"><span class="proj-card__overlay-text">View Project →</span></div>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────
+         6. FEATURED WORK — 3D cards
+    ──────────────────────────────────────── -->
+    <section id="featured-work" aria-label="Featured work">
+      <div class="featured-inner">
+        <span class="section-label">Featured Projects</span>
+        <h2 class="services-heading">
+          Work we're<br>
+          <span class="outlined">proud to show off</span>
+        </h2>
+
+        <div class="featured-stage" id="featured-stage">
+
+          <!-- Card 0 — LEFT -->
+          <article class="feat-card feat-card--left" data-index="0">
+            <div class="feat-card__gloss"></div>
+            <span class="feat-card__category">Fashion &amp; Streetwear</span>
+            <h3 class="feat-card__title">VibeZ Style</h3>
+            <p class="feat-card__desc">A bold streetwear brand site with product showcases, bold typography, and checkout-ready layout.</p>
+            <a href="https://yellobean090.github.io/vibez/" class="feat-card__arrow" target="_blank" rel="noopener" aria-label="View VibeZ Style project">→</a>
+          </article>
+
+          <!-- Card 1 — ACTIVE (center) -->
+          <article class="feat-card feat-card--active" data-index="1">
+            <div class="feat-card__gloss"></div>
+            <span class="feat-card__category">Street Food &amp; Restaurant</span>
+            <h3 class="feat-card__title">RV Cafe</h3>
+            <p class="feat-card__desc">A full-service restaurant website with menu, gallery, WhatsApp ordering, and Google Maps integration.</p>
+            <a href="https://yellobean090.github.io/Dec25/" class="feat-card__arrow" target="_blank" rel="noopener" aria-label="View RV Cafe project">→</a>
+          </article>
+
+          <!-- Card 2 — RIGHT -->
+          <article class="feat-card feat-card--right" data-index="2">
+            <div class="feat-card__gloss"></div>
+            <span class="feat-card__category">Kids Events &amp; Decor</span>
+            <h3 class="feat-card__title">Aura Square</h3>
+            <p class="feat-card__desc">A pastel-meets-premium events brand site showcasing birthday packages, gallery, and booking flow.</p>
+            <a href="https://yellobean090.github.io/aurasquare/" class="feat-card__arrow" target="_blank" rel="noopener" aria-label="View Aura Square project">→</a>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────
+         7. PROCESS — sticky horizontal scroll
+    ──────────────────────────────────────── -->
+    <div class="process-wrapper">
+      <section id="process" aria-label="Our process">
+        <div class="process-header">
+          <span class="section-label">How We Work</span>
+          <h2 class="services-heading section-reveal-heading" id="process-heading">
+            Our <span class="outlined">process</span>
+          </h2>
+        </div>
+        <div class="process-strip" id="process-strip">
+          <div class="process-step">
+            <span class="process-num" aria-hidden="true">01</span>
+            <div class="process-content">
+              <h3 class="process-title">Discovery</h3>
+              <p class="process-desc">We start by deeply understanding your business, your customers, and what you want your website to do. No templates — just strategy.</p>
+            </div>
+          </div>
+          <div class="process-step">
+            <span class="process-num" aria-hidden="true">02</span>
+            <div class="process-content">
+              <h3 class="process-title">Design</h3>
+              <p class="process-desc">We craft a design that matches your brand identity — clean, fast-loading, and built to convert visitors into paying customers.</p>
+            </div>
+          </div>
+          <div class="process-step">
+            <span class="process-num" aria-hidden="true">03</span>
+            <div class="process-content">
+              <h3 class="process-title">Build</h3>
+              <p class="process-desc">We code every page from scratch — optimized for speed, mobile-first, SEO-ready, and connected to your WhatsApp or booking flow.</p>
+            </div>
+          </div>
+          <div class="process-step">
+            <span class="process-num" aria-hidden="true">04</span>
+            <div class="process-content">
+              <h3 class="process-title">Launch</h3>
+              <p class="process-desc">We deploy, test across all devices, submit to Google, and hand you a live website. Then we stay available for revisions and support.</p>
+            </div>
+          </div>
+        </div>
+        <div class="process-progress-bar" id="process-bar" aria-hidden="true"></div>
+      </section>
+    </div>
+
+    <!-- ────────────────────────────────────────
+         8. STATS COUNTER
+    ──────────────────────────────────────── -->
+    <section id="stats" aria-label="Stats">
+      <div class="stats-inner">
+        <div class="stat-item">
+          <div class="stat-number" data-target="50" data-suffix="+">0</div>
+          <div class="stat-label">Projects Delivered</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="3" data-suffix="+">0</div>
+          <div class="stat-label">Years of Experience</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="100" data-suffix="%">0</div>
+          <div class="stat-label">Client Satisfaction</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────
+         9. TESTIMONIALS
+    ──────────────────────────────────────── -->
+    <section id="testimonials" aria-label="Testimonials">
+      <div class="testi-inner">
+        <span class="section-label">What Clients Say</span>
+        <h2 class="services-heading section-reveal-heading" id="testi-heading">
+          Real results,<br><span class="outlined">real words</span>
+        </h2>
+        <div class="testi-stage" id="testi-stage" aria-live="polite">
+          <div class="testi-card testi-card--left" data-testi="0">
+            <p class="testi-quote">YelloBean built our cafe website in 3 days. We started getting calls and walk-ins the same week it went live. Absolutely worth it.</p>
+            <div class="testi-author"><span class="testi-name">Raghav Verma</span><span class="testi-biz">RV Cafe, Lucknow</span></div>
+          </div>
+          <div class="testi-card testi-card--active" data-testi="1">
+            <p class="testi-quote">I was skeptical about spending money on a website, but Shaurya gave us a free demo first. When I saw how it looked, the decision was instant.</p>
+            <div class="testi-author"><span class="testi-name">Priya Malhotra</span><span class="testi-biz">Aura Square Events</span></div>
+          </div>
+          <div class="testi-card testi-card--right" data-testi="2">
+            <p class="testi-quote">Our landing page now converts at almost 12%. The WhatsApp integration alone brought us 20+ leads in the first month. Insane ROI.</p>
+            <div class="testi-author"><span class="testi-name">Kabir Singh</span><span class="testi-biz">VibeZ Style</span></div>
+          </div>
+        </div>
+        <div class="testi-dots" role="tablist" aria-label="Testimonial navigation" id="testi-dots">
+          <button class="testi-dot" role="tab" aria-selected="false" aria-label="Testimonial 1"></button>
+          <button class="testi-dot active" role="tab" aria-selected="true" aria-label="Testimonial 2"></button>
+          <button class="testi-dot" role="tab" aria-selected="false" aria-label="Testimonial 3"></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ────────────────────────────────────────────
+       10. FOOTER
+  ──────────────────────────────────────────── -->
+  <footer id="footer" role="contentinfo">
+    <div class="footer-inner">
+
+      <!-- Big headline -->
+      <div class="footer-headline" aria-label="Let's work together">
+        <span class="footer-headline__solid">LET'S</span>
+        <span class="footer-headline__outlined">WORK.</span>
+      </div>
+
+      <!-- 3 column grid -->
+      <div class="footer-cols">
+
+        <!-- Col 1: Brand -->
+        <div>
+          <p class="footer-col-title">Studio</p>
+          <a href="#hero" aria-label="YelloBean Studio home">
+            <div class="logo" style="font-size:1rem;">
+              <span class="logo__yello">YELLO</span><span class="logo__bean">BEAN</span><span class="logo__dot" aria-hidden="true"></span>
+            </div>
+          </a>
+          <p class="footer-tagline">Websites that get you found.</p>
+        </div>
+
+        <!-- Col 2: Quick links -->
+        <div>
+          <p class="footer-col-title">Quick Links</p>
+          <nav class="footer-links" aria-label="Footer navigation">
+            <a href="#work-carousel">Work</a>
+            <a href="#services">Services</a>
+            <a href="#process">Process</a>
+            <a href="#testimonials">Testimonials</a>
+          </nav>
+        </div>
+
+        <!-- Col 3: Contact -->
+        <div>
+          <p class="footer-col-title">Get In Touch</p>
+          <div class="footer-contact">
+            <a href="https://instagram.com/khanabadosh_hu786" target="_blank" rel="noopener" aria-label="Instagram">
+              <span aria-hidden="true">📸</span> @khanabadosh_hu786
+            </a>
+            <a href="https://wa.me/919999999999?text=Hi%2C%20I%27d%20like%20a%20free%20demo" target="_blank" rel="noopener" aria-label="WhatsApp">
+              <span aria-hidden="true">💬</span> WhatsApp Us
+            </a>
+            <a href="mailto:hello@yellobeanstudio.com" aria-label="Email">
+              <span aria-hidden="true">✉️</span> hello@yellobeanstudio.com
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Copyright -->
+      <div class="footer-copy">
+        <span>© 2025 YelloBean Studio. Built with obsession.</span>
+        <a href="#hero" style="color:var(--muted);font-size:12px;">↑ Back to top</a>
+      </div>
+
+    </div>
+  </footer>
+
+
+  <!-- ════════════════════════════════════════════
+       JAVASCRIPT — complete, zero external libs
+  ════════════════════════════════════════════ -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* ── prefers-reduced-motion gate ── */
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* ════════════════════════════════════════
+         A. CUSTOM CURSOR — rAF driven
+      ════════════════════════════════════════ */
+      const dot  = document.getElementById('cursor-dot');
+      const ring = document.getElementById('cursor-ring');
+      const body = document.body;
+      let mx = -200, my = -200, rx = -200, ry = -200;
+      const LERP = 0.10;
+
+      if (!prefersReducedMotion) {
+        /* buffer coords — actual writes happen in rAF */
+        document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+        document.addEventListener('mouseleave', () => { dot.style.opacity = '0'; ring.style.opacity = '0'; });
+        document.addEventListener('mouseenter', () => { dot.style.opacity = ''; ring.style.opacity = ''; });
+        const HT = 'a, button, [data-cursor-hover]';
+        document.addEventListener('mouseover', e => { if (e.target.closest(HT)) body.classList.add('cursor-hover'); });
+        document.addEventListener('mouseout',  e => { if (e.target.closest(HT)) body.classList.remove('cursor-hover'); });
+      }
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+
+      /* ════════════════════════════════════════
+         SHARED rAF — cursor + scrollbar + process
+      ════════════════════════════════════════ */
+      const scrollBar    = document.getElementById('scroll-bar');
+      const processStrip = document.getElementById('process-strip');
+      const processBar   = document.getElementById('process-bar');
+      const processWrap  = document.querySelector('.process-wrapper');
+      let scrollBarPct   = 0;
+
+      function rafLoop() {
+        /* cursor */
+        if (!prefersReducedMotion) {
+          dot.style.transform  = `translate(calc(-50% + ${mx}px), calc(-50% + ${my}px))`;
+          rx = lerp(rx, mx, LERP);
+          ry = lerp(ry, my, LERP);
+          ring.style.transform = `translate(calc(-50% + ${rx}px), calc(-50% + ${ry}px))`;
+        }
+        /* scroll bar */
+        const maxS = document.documentElement.scrollHeight - window.innerHeight;
+        const pct  = maxS > 0 ? (window.scrollY / maxS) * 100 : 0;
+        if (Math.abs(pct - scrollBarPct) > 0.05) {
+          scrollBarPct = pct;
+          scrollBar.style.width = pct + '%';
+        }
+        /* process horizontal scroll (desktop only) */
+        if (window.innerWidth > 768 && processWrap && processStrip) {
+          const rect     = processWrap.getBoundingClientRect();
+          const total    = processWrap.offsetHeight - window.innerHeight;
+          const scrolled = Math.max(0, Math.min(total, -rect.top));
+          const prog     = total > 0 ? scrolled / total : 0;
+          processStrip.style.transform = `translateX(${prog * -75}vw)`;
+          if (processBar) processBar.style.width = (prog * 100) + '%';
+        }
+        requestAnimationFrame(rafLoop);
+      }
+      requestAnimationFrame(rafLoop);
+
+
+      /* ════════════════════════════════════════
+         B. LOADER
+      ════════════════════════════════════════ */
+      const loader     = document.getElementById('loader');
+      const loaderCount= document.getElementById('loader-count');
+      const halfTop    = loader.querySelector('.loader-half--top');
+      const halfBottom = loader.querySelector('.loader-half--bottom');
+      body.style.overflow = 'hidden';
+
+      function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+
+      const LDUR = prefersReducedMotion ? 50 : 2000;
+      let ldStart = null;
+
+      function animateCount(ts) {
+        if (!ldStart) ldStart = ts;
+        const p = Math.min((ts - ldStart) / LDUR, 1);
+        loaderCount.textContent = Math.round(easeInOut(p) * 100);
+        if (p < 1) { requestAnimationFrame(animateCount); return; }
+        loaderCount.style.opacity = '0';
+        halfTop.classList.add('split');
+        halfBottom.classList.add('split');
+        setTimeout(() => {
+          loader.remove();
+          body.style.overflow = '';
+          initHeroEntrance();
+        }, prefersReducedMotion ? 10 : 750);
+      }
+
+      function startLoader() {
+        requestAnimationFrame(ts => requestAnimationFrame(() => animateCount(ts)));
+      }
+      if (document.readyState === 'complete') startLoader();
+      else window.addEventListener('load', startLoader);
+
+
+      /* ════════════════════════════════════════
+         C. NAVIGATION
+      ════════════════════════════════════════ */
+      const nav        = document.getElementById('nav');
+      const hamburger  = document.getElementById('hamburger');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const mobileLinks= mobileMenu.querySelectorAll('.mobile-menu-link');
+
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 80);
+      }, { passive: true });
+
+      let menuOpen = false;
+
+      function openMenu() {
+        menuOpen = true;
+        hamburger.classList.add('open');
+        hamburger.setAttribute('aria-expanded', 'true');
+        mobileMenu.classList.add('open');
+        mobileMenu.setAttribute('aria-hidden', 'false');
+        body.style.overflow = 'hidden';
+        mobileLinks.forEach((l, i) => {
+          l.style.transition = `opacity .45s ease ${i*60}ms, transform .45s cubic-bezier(.16,1,.3,1) ${i*60}ms`;
+          l.getBoundingClientRect();
+          l.classList.add('visible');
+        });
+      }
+
+      function closeMenu() {
+        menuOpen = false;
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileMenu.classList.remove('open');
+        mobileMenu.setAttribute('aria-hidden', 'true');
+        body.style.overflow = '';
+        mobileLinks.forEach(l => { l.classList.remove('visible'); l.style.transition = 'none'; });
+      }
+
+      hamburger.addEventListener('click', () => menuOpen ? closeMenu() : openMenu());
+      mobileLinks.forEach(l => l.addEventListener('click', closeMenu));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && menuOpen) closeMenu(); });
+
+
+      /* ════════════════════════════════════════
+         D. HERO — word-split entrance
+      ════════════════════════════════════════ */
+      function initHeroEntrance() {
+        const line1 = document.querySelector('.hero-line-1');
+        const line2 = document.querySelector('.hero-line-2');
+        const sub   = document.querySelector('.hero-sub');
+        const btns  = document.querySelector('.hero-buttons');
+
+        if (prefersReducedMotion) {
+          [sub, btns].forEach(el => el && el.classList.add('revealed'));
+          return;
+        }
+        if (!line1 || !line2) return;
+
+        function wrapWords(el, baseDelay) {
+          const words = el.textContent.trim().split(/\s+/);
+          el.textContent = '';
+          words.forEach((w, i) => {
+            const clip = document.createElement('span');
+            const inner= document.createElement('span');
+            clip.className = 'word-clip'; inner.className = 'word-inner';
+            inner.textContent = w;
+            clip.appendChild(inner); el.appendChild(clip);
+            if (i < words.length - 1) el.appendChild(document.createTextNode('\u00A0'));
+            setTimeout(() => inner.classList.add('revealed'), baseDelay + i * 100);
+          });
+          return words.length;
+        }
+
+        const l1n = wrapWords(line1, 0);
+        wrapWords(line2, l1n * 100 + 60);
+        const td  = (l1n + line2.textContent.trim().split(/\s+/).length) * 100 + 80;
+        setTimeout(() => sub  && sub.classList.add('revealed'), td);
+        setTimeout(() => btns && btns.classList.add('revealed'), td + 140);
+        setTimeout(() => {
+          document.querySelectorAll('.btn-primary').forEach(b => b.classList.add('pulse'));
+        }, td + 2200);
+      }
+
+
+      /* ════════════════════════════════════════
+         E. SERVICES — IO reveal (once)
+      ════════════════════════════════════════ */
+      (function() {
+        const cards = document.querySelectorAll('.service-card');
+        if (!cards.length) return;
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(en => {
+            if (!en.isIntersecting) return;
+            const i = parseInt(en.target.dataset.index||'0', 10);
+            setTimeout(() => {
+              en.target.classList.add('revealed');
+              const p = en.target.querySelector('.service-num-path');
+              if (p) p.style.strokeDashoffset = '0';
+            }, i * 80);
+            io.unobserve(en.target);
+          });
+        }, { threshold: 0.15 });
+        cards.forEach((c, i) => { c.dataset.index = i; io.observe(c); });
+      })();
+
+
+      /* ════════════════════════════════════════
+         F. SECTION HEADING underlines (IO, once)
+      ════════════════════════════════════════ */
+      document.querySelectorAll('.section-reveal-heading, #carousel-heading').forEach(el => {
+        if (prefersReducedMotion) { el.classList.add('line-revealed'); return; }
+        const io = new IntersectionObserver(entries => {
+          if (entries[0].isIntersecting) {
+            entries[0].target.classList.add('line-revealed');
+            io.disconnect();
+          }
+        }, { threshold: 0.4 });
+        io.observe(el);
+      });
+
+
+      /* ════════════════════════════════════════
+         G. FEATURED WORK — 3D tilt + gloss + swipe
+      ════════════════════════════════════════ */
+      (function() {
+        const stage = document.getElementById('featured-stage');
+        if (!stage) return;
+        const cards = Array.from(stage.querySelectorAll('.feat-card'));
+        let activeIdx = Math.max(0, cards.findIndex(c => c.classList.contains('feat-card--active')));
+        const isTouch = window.matchMedia('(hover: none)').matches;
+
+        function setClasses() {
+          cards.forEach((c, i) => {
+            c.classList.remove('feat-card--active','feat-card--left','feat-card--right');
+            if (i === activeIdx) c.classList.add('feat-card--active');
+            else if (i < activeIdx) c.classList.add('feat-card--left');
+            else c.classList.add('feat-card--right');
+          });
+        }
+
+        if (!isTouch && !prefersReducedMotion) {
+          cards.forEach(card => {
+            const gl = card.querySelector('.feat-card__gloss');
+            card.addEventListener('mousemove', e => {
+              if (!card.classList.contains('feat-card--active')) return;
+              const r  = card.getBoundingClientRect();
+              const dx = (e.clientX-(r.left+r.width/2))/(r.width/2);
+              const dy = (e.clientY-(r.top+r.height/2))/(r.height/2);
+              const rY = Math.max(-15,Math.min(15, dx*15));
+              const rX = Math.max(-15,Math.min(15,-dy*15));
+              card.style.transform  = `scale(1) rotateX(${rX}deg) rotateY(${rY}deg)`;
+              card.style.transition = 'transform 0.1s ease';
+              card.style.boxShadow  = `${-rY*1.5}px ${rX*1.5}px 40px rgba(251,54,64,0.15)`;
+              if (gl) {
+                gl.style.background = `radial-gradient(circle 200px at ${((e.clientX-r.left)/r.width)*100}% ${((e.clientY-r.top)/r.height)*100}%,rgba(255,255,255,.07) 0%,transparent 70%)`;
+              }
+            });
+            card.addEventListener('mouseleave', () => {
+              if (!card.classList.contains('feat-card--active')) return;
+              card.style.transform  = 'scale(1) rotateX(0) rotateY(0)';
+              card.style.transition = 'transform 0.6s cubic-bezier(0.23,1,0.32,1)';
+              card.style.boxShadow  = '';
+            });
+          });
+        }
+
+        cards.forEach((c, i) => c.addEventListener('click', e => {
+          if (e.target.closest('a') || i === activeIdx) return;
+          activeIdx = i; setClasses();
+        }));
+
+        let tx = 0;
+        stage.addEventListener('touchstart', e => { tx = e.changedTouches[0].clientX; }, {passive:true});
+        stage.addEventListener('touchend',   e => {
+          const dx = e.changedTouches[0].clientX - tx;
+          if (Math.abs(dx) < 40) return;
+          activeIdx = dx < 0 ? Math.min(activeIdx+1, cards.length-1) : Math.max(activeIdx-1, 0);
+          setClasses();
+        }, {passive:true});
+
+        setClasses();
+      })();
+
+
+      /* ════════════════════════════════════════
+         H. STATS — easeOutQuart rAF counter (IO, once)
+      ════════════════════════════════════════ */
+      (function() {
+        const nums = document.querySelectorAll('.stat-number[data-target]');
+        if (!nums.length) return;
+        function easeOutQuart(t) { return 1 - Math.pow(1-t, 4); }
+        function animateStat(el, target, suffix) {
+          if (prefersReducedMotion) { el.textContent = target + suffix; return; }
+          let start = null;
+          (function step(ts) {
+            if (!start) start = ts;
+            const t = Math.min((ts-start)/2000, 1);
+            el.textContent = Math.round(easeOutQuart(t) * target) + suffix;
+            if (t < 1) requestAnimationFrame(step);
+          })(performance.now());
+        }
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(en => {
+            if (!en.isIntersecting) return;
+            animateStat(en.target, parseInt(en.target.dataset.target,10), en.target.dataset.suffix||'');
+            io.unobserve(en.target);
+          });
+        }, { threshold: 0.5 });
+        nums.forEach(el => io.observe(el));
+      })();
+
+
+      /* ════════════════════════════════════════
+         I. TESTIMONIALS — dots + auto-advance + swipe
+      ════════════════════════════════════════ */
+      (function() {
+        const stage = document.getElementById('testi-stage');
+        const dotsEl= document.getElementById('testi-dots');
+        if (!stage || !dotsEl) return;
+        const cards = Array.from(stage.querySelectorAll('.testi-card'));
+        const dots  = Array.from(dotsEl.querySelectorAll('.testi-dot'));
+        let active  = Math.max(0, cards.findIndex(c => c.classList.contains('testi-card--active')));
+        let timer;
+        const CLS = ['testi-card--left','testi-card--active','testi-card--right','testi-card--hidden'];
+
+        function goTo(idx) {
+          active = ((idx % cards.length) + cards.length) % cards.length;
+          cards.forEach((c,i) => {
+            c.classList.remove(...CLS);
+            const d = i - active;
+            if (d === 0)       c.classList.add('testi-card--active');
+            else if (d === -1) c.classList.add('testi-card--left');
+            else if (d ===  1) c.classList.add('testi-card--right');
+            else               c.classList.add('testi-card--hidden');
+          });
+          dots.forEach((d,i) => {
+            d.classList.toggle('active', i === active);
+            d.setAttribute('aria-selected', String(i === active));
+          });
+        }
+
+        function startTimer() {
+          clearInterval(timer);
+          timer = setInterval(() => goTo(active + 1), 5000);
+        }
+
+        dots.forEach((d,i) => d.addEventListener('click', () => { goTo(i); startTimer(); }));
+        stage.addEventListener('mouseenter', () => clearInterval(timer));
+        stage.addEventListener('mouseleave', startTimer);
+
+        let tx = 0;
+        stage.addEventListener('touchstart', e => { tx = e.changedTouches[0].clientX; }, {passive:true});
+        stage.addEventListener('touchend',   e => {
+          const dx = e.changedTouches[0].clientX - tx;
+          if (Math.abs(dx) < 40) return;
+          goTo(active + (dx < 0 ? 1 : -1));
+          startTimer();
+        }, {passive:true});
+
+        goTo(active);
+        startTimer();
+      })();
+
+
+      /* ════════════════════════════════════════
+         J. MICRO-INTERACTIONS — click ripple
+      ════════════════════════════════════════ */
+      if (!prefersReducedMotion) {
+        document.addEventListener('click', e => {
+          const el = e.target.closest('a, button');
+          if (!el) return;
+          const cs = getComputedStyle(el);
+          if (cs.position === 'static') el.style.position = 'relative';
+          el.style.overflow = 'hidden';
+          const r    = el.getBoundingClientRect();
+          const size = 60;
+          const rip  = document.createElement('span');
+          rip.className = 'ripple';
+          rip.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px;`;
+          el.appendChild(rip);
+          setTimeout(() => rip.remove(), 520);
+        });
+      }
+
+    })();
+  </script>
+
+</body>
+</html>

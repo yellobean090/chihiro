@@ -1,0 +1,249 @@
+Build a complete, single-file demo website (HTML + CSS + JS, no frameworks) for CHIHIRO — a bakehouse and café located at 3, Mahatma Gandhi Marg, Sadar Bazaar, Cantonment, Lucknow, Uttar Pradesh 226002. The café is female-led, run by a young couple, inside a war memorial campus surrounded by lush cantonment greenery. The name "Chihiro" is Japanese for "a thousand questions" — evoking curiosity, wonder, and quiet discovery. The overall aesthetic is Studio Ghibli meets Parisian bakehouse: warm, romantic, botanical, soft-feminine, nature-drenched, deeply curated.
+
+=== BRAND IDENTITY ===
+
+Color Palette (use as CSS variables):
+--green-dark: #2d5a27
+--green-sage: #8fbc5a
+--cream: #f5efe6
+--terracotta: #b5452a
+--amber: #d4a843
+--text: #1a1a1a
+--text-light: #5a4a3a
+
+Typography (load from Google Fonts):
+- Playfair Display — display headings (elegant, editorial, feminine)
+- DM Sans — body text (clean, modern)
+- Cormorant Garamond — pull quotes and accent text
+Use all-caps + letterspacing for labels and category headers.
+
+Mood: cozy, poetic, unhurried, sensory. Feminine without being pink or cliché.
+
+=== TECH REQUIREMENTS ===
+
+- Single HTML file. Vanilla HTML + CSS + JavaScript only. No frameworks, no Tailwind, no Bootstrap.
+- Load GSAP 3 from CDN: https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js
+- Load GSAP ScrollTrigger plugin from CDN.
+- Load Google Fonts via <link> tag.
+- Where real photos would go, use styled <div> placeholders with CSS gradients in the brand palette, layered with botanical SVG overlays, so the site looks complete and beautiful without actual images.
+- All code in one file. Fully functional. No broken sections.
+
+=== SECTIONS (in order) ===
+
+--- 1. SMOOTH LOADER ---
+- Full-screen preloader with dark green (#2d5a27) background
+- "CHIHIRO" text animates in letter-by-letter using GSAP stagger from below
+- Tagline "coffee & crumbs" fades in underneath after letters land
+- A thin progress line fills across the bottom of the screen
+- After 2.5s, loader panel slides up (GSAP Y: "-100%") revealing the site beneath
+- Site content is hidden (opacity 0) until loader exits, then GSAP fades it in
+
+--- 2. CUSTOM CURSOR ---
+- Hide default cursor on non-touch devices
+- Small filled circle (8px, cream color) — snaps directly to mouse position
+- Large ring (30px, terracotta border, transparent fill) — follows with smooth lerp (0.12 factor) for elastic lag
+- On hover over any <a>, <button>: ring expands to 55px and fills terracotta at 25% opacity, with CSS transition
+- On hover over image containers / cards: cursor inner dot changes to a tiny "VIEW ✦" text pill
+- On mousedown: cursor ring squishes with a quick scaleX(0.7) scaleY(1.3) then springs back
+- Disable cursor entirely on touch devices using @media (pointer: coarse)
+
+--- 3. HERO SECTION ---
+- Full viewport height
+- Split layout: left 55% text, right 45% image placeholder
+- Left column heading stacked in editorial style, mix of italic and upright:
+  Line 1: "CHIHIRO" — very large, Playfair Display, dark green, upright
+  Line 2: "coffee & crumbs ✦" — small, Cormorant Garamond italic, terracotta
+  Line 3: "A little corner of" — medium, DM Sans light, dark text
+  Line 4: "quiet wonder." — large, Playfair Display italic, dark green
+  Line 5: "Cantonment, Lucknow" — small caps, DM Sans, letter-spaced, amber
+- Below heading: two buttons side by side — "Explore the Menu" (filled terracotta) and "Find Us" (outlined green)
+- Right column: tall portrait image container with a layered CSS gradient (sage greens) and a botanical SVG outline (peony or leaf) overlaid at 30% opacity
+- Entrance animation: each text line animates from translateY(60px) opacity(0) → natural position, GSAP stagger 0.12s, triggered on loader exit
+- Subtle parallax: right image moves at 60% scroll speed using GSAP ScrollTrigger scrub
+- 3–4 small floating botanical SVG elements (leaves, small flowers) in cream/terracotta scattered around hero, drifting with CSS keyframe animation (different speeds: 6s, 9s, 12s, alternating translateY and slight rotation)
+- Below the split layout, a full-width marquee ticker strip in dark green background:
+  "☕ SPECIALTY COFFEE ✦ ARTISAN BAKES ✦ CANTONMENT, LUCKNOW ✦ DINE IN ✦ TAKEAWAY ✦ DOG FRIENDLY ✦ FREE WIFI ✦ GREAT DESSERTS ✦"
+  Auto-scrolling left with CSS @keyframes, cream text
+
+--- 4. ABOUT / STORY SECTION ---
+- Background: warm cream (#f5efe6) with a subtle CSS noise/grain texture overlay (use SVG feTurbulence filter at very low opacity)
+- Left half: large Cormorant Garamond italic pull quote in dark green:
+  "Chihiro — a name that in Japanese signifies a thousand questions. A place that sparks curiosity, wonder, and quiet conversation."
+  Below it: a small terracotta botanical SVG flower illustration, 80px wide
+- Right half: two short paragraphs in DM Sans:
+  Para 1: "Tucked inside the lush greens of Lucknow Cantonment, Chihiro was imagined as more than just a café. It was built as a calm, welcoming space where good food, thoughtful design, and warm conversations come together."
+  Para 2: "Every detail — from the ingredients we use to the way the space feels — has been chosen with care. We bake fresh daily, pull our espresso with intention, and hope you leave feeling a little lighter than when you came in."
+- Scroll trigger: text lines reveal via clip-path sliding up — each line has overflow:hidden wrapper, inner span animates from translateY(100%) → 0 on ScrollTrigger entry, staggered 0.08s per line
+- A large ampersand or leaf watermark in very faint green (3% opacity) in the background as a decorative element
+
+--- 5. MENU SECTION ---
+- Section title: "The Menu" — very large Playfair Display italic, dark green, centered
+- Small divider: "✦ coffee & crumbs ✦" in terracotta, small caps
+- Four tab buttons: WHITE COFFEE | SPECIALS | TEA | BAKES
+  Active tab: filled terracotta background, cream text
+  Inactive: outlined, green text
+  On click: active panel fades in (GSAP opacity + slight translateY), animated underline indicator slides to active tab
+- Each tab panel shows a grid of menu item cards
+
+WHITE COFFEE panel items:
+Macchiato — Espresso topped with a touch of milk foam — ₹155 (hot only)
+Cortado — Equal parts espresso and warm milk, smooth & balanced — ₹165 (hot only)
+Flat White — Espresso with fine microfoam, silky and rich — ₹180 (hot only)
+Cappuccino — Espresso topped with steamed milk and milk foam, the classic — ₹190 hot / ₹210 iced
+Latte — Creamy, light, and easy — espresso with milk — ₹200 hot / ₹220 iced
+Dark Chocolate Mocha — Espresso, dark chocolate, and milk in perfect harmony — ₹230 hot / ₹250 iced
+
+SPECIALS panel items:
+Cortado Mocha — Equal parts espresso, milk, and dark chocolate. Creamy like a mocha, compact like a cortado — ₹200 (hot only)
+Dirty Chai Latte — An iced chai latte blended with a shot of espresso. Spiced, creamy, and lightly bold — ₹210 (iced only)
+Cinnamon Latte — Latte with a hint of freshly ground cinnamon — ₹230 hot / ₹250 iced
+Hot Chocolate — Rich and velvety, made with 54.5% Callebaut chocolate for a deep, smooth finish — ₹240 (hot only)
+
+TEA panel items:
+Chamomile — A calming cup of chamomile, gentle, floral, and naturally soothing — ₹160
+Iced Chai Latte — A creamy spiced latte with cardamom, nutmeg, and cinnamon — ₹190
+
+BAKES panel items:
+Carrot Cake — Carrot sponge, cinnamon spiced walnuts, orange zest, chantilly mascarpone — ₹185
+OG Chocolate Cake — Rich dark chocolate layers — ₹275
+Smoky Pineapple Upside-Down — Genoise sponge, pineapple compote, smoked caramel, roasted pistachios — ₹190
+Chocolate Orange — Dark chocolate, orange — ₹195
+Lemon Meringue Tart — Buttery tart shell, lemon curd, toasted meringue — ₹185
+Orange Semolina Cake — Light semolina cake with orange — ₹240
+Berry Tart — Pâte sucrée, almond cream, vanilla chantilly, strawberry compote — seasonal price
+Classic Lamington — Chocolate sponge, coconut — ₹165
+Salt Bread (Shio Pan) — Japanese-style buttery salt bread roll — ₹120
+
+Menu card design:
+- Each card: cream background, left terracotta border (3px), item name in Playfair Display, description in small DM Sans, price right-aligned in amber bold
+- On hover: card lifts (translateY -4px), shadow deepens, left border expands to 6px, price slides in from right with a spring bounce (GSAP elastic ease)
+- Scroll trigger on section entry: cards stagger in from bottom (translateY 40px → 0, opacity 0 → 1)
+
+--- 6. BAKEHOUSE SHOWCASE — INFINITE CAROUSEL ---
+- Section heading: "From The Bakehouse" — Playfair Display, large, left-aligned with a decorative underline in terracotta
+- Infinite horizontal auto-scrolling strip of dessert cards using CSS @keyframes translateX loop
+- 8 cards (duplicate set for seamless loop): Smoky Pineapple Upside-Down | OG Chocolate Cake | Lemon Meringue Tart | Berry Tart | Spiced Carrot Cake | Salt Bread | Lamington | Chocolate Orange
+- Each card: fixed width 280px, height 380px, rounded corners (16px), image placeholder (CSS gradient in relevant warm tones), item name in a frosted glass strip at bottom (backdrop-filter blur, cream text)
+- On hover: card scales to 1.06, pauses the carousel animation (add class to parent), shows a secondary line with 2-word ingredient note sliding up
+- On mouse leave: carousel resumes
+- Below the carousel, a reverse-direction marquee strip:
+  "FRESH DAILY ✦ BAKED WITH LOVE ✦ SOURCED WITH CARE ✦ MADE IN SMALL BATCHES ✦ NO ARTIFICIAL PRESERVATIVES ✦"
+  Scrolling right to left, dark green background, amber text
+
+--- 7. AMBIENCE / VIBE SECTION ---
+- Full-bleed section with deep green background
+- Large centered heading in Cormorant Garamond italic, cream:
+  "Not just a café. A feeling."
+- Below heading: a large 3D tilt card — a prominent image placeholder (the green interior of the café, rich ornate ceiling, florals) styled with CSS gradients in green tones, with an SVG botanical overlay
+  On mousemove over the section: the card tilts in 3D — JS calculates mouse position relative to card center, applies perspective(800px) rotateX(up to 8deg) rotateY(up to 8deg), smooth lerp transition
+  On mouse leave: card returns to flat with a spring ease
+- Below the 3D card: 3-column grid with frosted glass cards (backdrop-filter blur, semi-transparent cream):
+  Card 1 — "Interior" — small heading, 1-line description: "Ornate tin ceilings, sage green walls, curated shelves"
+  Card 2 — "Garden View" — "Floor-to-ceiling windows opening into cantonment greenery"
+  Card 3 — "The Counter" — "Where every cup is pulled with precision and care"
+- Each mini-card has a subtle inner parallax: background image placeholder moves slightly opposite to mouse direction on hover
+- 3–4 floating botanical SVG elements (white/cream) are absolutely positioned in the section, drifting with CSS animation at different speeds
+
+--- 8. INFO / VISIT SECTION ---
+- Background: warm cream
+- Section title: "Plan Your Visit" — Playfair Display, centered, dark green
+- Three columns revealed on scroll with GSAP stagger (each column slides in from bottom, 0.15s delay apart):
+
+Column 1 — "Find Us"
+📍 3, Mahatma Gandhi Marg, Sadar Bazaar, Cantonment, Lucknow 226002
+Inside Surya Club (Smritika Café premises)
+♿ Wheelchair accessible: entrance, seating, parking & toilet available
+
+Column 2 — "How We Serve"
+🍽️ Dine In · Takeaway · Kerbside Pickup
+Table service available
+Breakfast & Dessert served
+🐕 Dog-friendly (indoors & outdoors)
+👶 Great for kids · Perfect for groups
+
+Column 3 — "Amenities"
+📶 Free WiFi
+🅿️ Free parking — on-site, lot & street
+💳 Credit/Debit cards · Google Pay · NFC
+🚻 Gender-neutral restrooms available
+
+- Each column item animates in sequentially on scroll entry using GSAP stagger (clip-path reveal from left)
+- A subtle horizontal rule divides each column internally
+- At bottom of section: a full-width CTA bar in terracotta: "Ready to visit? → Get Directions" — button opens a Google Maps link
+
+--- 9. REVIEWS CAROUSEL ---
+- Section title: "What People Say" — Playfair Display italic, centered
+- Horizontal scrollable carousel of 6 review cards (drag/swipe enabled via JS pointer events)
+- Each card: cream background, soft shadow, rounded corners
+  - Reviewer name in Playfair Display bold
+  - 5 filled stars in amber (★★★★★)
+  - Review excerpt in Cormorant Garamond italic, 3–4 lines
+  - Date tag in small DM Sans, terracotta
+
+Reviews to use:
+1. Vishwajeet S. — "Absolutely loved the warm aesthetic vibe — from the beautiful green interiors to the cozy tables and lovely flowers. A perfect place to relax."
+2. Varul M. — "A beautiful little escape nestled in the lush greens of Lucknow Cantonment. Turning that little corner into a quiet escape was exactly what they hoped for."
+3. Santosh S. — "Tucked amidst lush greenery, this might just be one of the prettiest cafés in India. From impeccable coffee to a short, thoughtfully curated menu — it stays with you."
+4. Abhay R. — "The coffee is rich and well-balanced. Service is courteous and attentive without being intrusive. A lovely space for unhurried moments."
+5. Nitya S. — "Visited on my birthday for a solo date. The moment I entered, it felt so welcoming — like the space was made for you."
+6. Ashutosh G. — "One of the best coffee places in town. The orange chocolate was amazing, so rich in taste. Hype is absolutely real."
+
+- Card hover: subtle lift (translateY -6px), shadow deepens
+- Each card is a 3D flip card (CSS preserve-3d): front shows the excerpt, click/tap flips to back which shows the full-length review text and a "★ Google Review" badge
+- Prev/Next arrow buttons with smooth GSAP slide animation
+- Dots pagination indicator below carousel
+
+--- 10. FOOTER ---
+- Background: deep forest green (#2d5a27)
+- Top: thin amber decorative line
+- Center: "CHIHIRO" wordmark in very large Playfair Display, cream, wide letter-spacing
+- Below: "coffee & crumbs — Cantonment, Lucknow" in Cormorant Garamond italic, sage green
+- Row of icon links: Instagram | Google Maps | WhatsApp (use SVG icons, cream, hover turns amber)
+- Bottom line: "A space for quiet wonder. © 2025 Chihiro Bakehouse. All rights reserved."
+- A cream botanical SVG element (large peony outline, low opacity) floats in bottom-right corner
+- Entrance reveal: footer text rises up on ScrollTrigger entry with stagger
+
+=== GLOBAL EFFECTS IMPLEMENTATION NOTES ===
+
+Parallax: Use GSAP ScrollTrigger with scrub:1 on the hero image, ambience section, and any section background layers.
+
+Entrance Reveals: Every section heading uses a clip-path reveal: the text is inside overflow:hidden, and on ScrollTrigger entry, inner element goes from translateY(100%) → 0. Body content uses opacity + translateY stagger.
+
+Scroll Trigger Actions: Every section (About, Menu, Showcase, Ambience, Info, Reviews, Footer) has at least one ScrollTrigger-activated animation.
+
+Floating Objects: 4–6 SVG botanical elements scattered across the page (not just hero). Each has a unique CSS @keyframes animation with translateY(-15px to 15px) and slight rotation, running at different durations (7s, 11s, 14s, 8s) on infinite alternate loops.
+
+3D Motion: Ambience section large card uses CSS perspective(800px) + JS mousemove → rotateX/Y calculation. Smooth lerp applied to the rotation values.
+
+Micro Interactions:
+- Menu price values spring-bounce in on hover
+- Tab indicator slides with GSAP
+- Button hover: slight scale(1.04) + shadow expansion
+- Star rating fill animation on review card entrance
+- Cursor transformations on different hover targets
+
+Mobile Friendly:
+- All grid layouts collapse to single column at <768px
+- Carousel becomes touch/swipe-scrollable
+- Custom cursor disabled on touch devices
+- Hero splits to single column stacked layout
+- Font sizes scale down with clamp()
+- Floating elements reduced to 2 on mobile (performance)
+
+Accessibility:
+- All images/placeholders have descriptive alt text
+- All buttons and interactive elements are keyboard navigable
+- Visible focus rings on all focusable elements (2px terracotta outline, 2px offset)
+- prefers-reduced-motion: wrap all GSAP animations in a matchMedia check — if reduced motion preferred, disable transitions and show content immediately
+- Semantic HTML: <header>, <main>, <section>, <nav>, <footer>, <article> used correctly
+- aria-label on all icon-only buttons
+- Color contrast meets WCAG AA (all text over background combinations)
+- Wheelchair accessibility info prominently featured in Info section
+
+Performance:
+- Loader hides content until ready (prevents FOUC)
+- GSAP animations use will-change: transform only when needed
+- CSS animations use transform and opacity only (GPU-composited)
+- No layout-triggering properties animated (no width/height/top/left)
+
+Output: A single, complete, copy-pasteable HTML file. Every section fully built. No placeholder "// add code here" comments. No broken layouts. The site must look premium, feminine, editorial, and emotionally warm — like a high-end European café that happens to be in Lucknow.
